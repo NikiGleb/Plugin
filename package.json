@@ -1,0 +1,30 @@
+{
+  "name": "radix-hover",
+  "displayName": "Radix Hover",
+  "description": "Учебный плагин",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "radixHover.hello",
+        "title": "Radix Hover: Привет"
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "tsc -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.2",
+    "@types/vscode": "^1.137.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  }
+}
