@@ -24,3 +24,23 @@ export function formatNumber(line: string): string{
     }
     return "10"
 }
+
+export interface ConvertationNumber {
+    bin: string;
+    oct: string;
+    dec: string;
+    hex: string;
+    base: string;
+}
+
+export function parseNumber(num: string): ConvertationNumber {
+    const value = BigInt(num);
+
+    return {
+        bin: value.toString(2),
+        oct: value.toString(8),
+        dec: value.toString(10),
+        hex: value.toString(16),
+        base: formatNumber(num),
+    };
+}

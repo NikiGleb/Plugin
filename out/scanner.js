@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.checkNumber = checkNumber;
 exports.formatNumber = formatNumber;
+exports.parseNumber = parseNumber;
 function checkNumber(line) {
     const pattern = /[1-9]+[0-9]*/;
     if (pattern.test(line)) {
@@ -22,8 +23,18 @@ function formatNumber(line) {
     if (line[0] === '0' && line[1] === 'o') {
         return "8";
     }
-    if (line[0] === '0' && line[1] === 'h') {
+    if (line[0] === '0' && line[1] === 'x') {
         return "16";
     }
     return "10";
+}
+function parseNumber(num) {
+    const value = BigInt(num);
+    return {
+        bin: value.toString(2),
+        oct: value.toString(8),
+        dec: value.toString(10),
+        hex: value.toString(16),
+        base: formatNumber(num),
+    };
 }
