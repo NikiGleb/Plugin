@@ -1,3 +1,5 @@
+import * as vscode from 'vscode';
+
 export function checkNumber(line: string): boolean{
     const pattern = /[1-9]+[0-9]*/;
     if (pattern.test(line)){
@@ -37,10 +39,30 @@ export function parseNumber(num: string): ConvertationNumber {
     const value = BigInt(num);
 
     return {
-        bin: value.toString(2),
-        oct: value.toString(8),
+        bin: '0b'+value.toString(2),
+        oct: '0o'+value.toString(8),
         dec: value.toString(10),
-        hex: value.toString(16),
+        hex: '0x'+value.toString(16),
         base: formatNumber(num),
     };
+}
+
+export interface ReplaceArgs {
+    uri: string;
+    startLine: number;
+    startChar: number;
+    endLine: number;
+    endChar: number;
+    newText: string;
+}
+
+export async function replaceLiteral(args: ReplaceArgs) {
+    const uri = vscode.Uri.parse(args.uri);
+    const range = new vscode.Range(
+        new vscode.Position(args.startLine, args.startChar),
+        new vscode.Position(args.endLine, args.endChar)
+    );
+    const edit = new vscode.WorkspaceEdit();
+    edit.replace(uri, range, args.newText);
+    await vscode.workspace.applyEdit(edit);
 }
