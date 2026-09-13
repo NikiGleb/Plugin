@@ -46,18 +46,10 @@ async function replaceLiteral(args) {
     const edit = new vscode.WorkspaceEdit();
     edit.replace(uri, range, args.newText);
     await vscode.workspace.applyEdit(edit);
-    // Делаем редактор с этим документом активным — editor.action.showHover
-    // работает только для активного редактора.
     const editor = await vscode.window.showTextDocument(uri, { preserveFocus: false });
-    // Текст заменился, длина могла измениться ("42" → "0x2A"),
-    // поэтому старый range.end уже не годится — считаем новый конец
-    // от начала диапазона плюс длина нового текста.
-    const newEnd = range.start.translate(0, args.newText.length);
-    // Ставим курсор на заменённое число — именно в этой позиции
-    // потом попросим VS Code показать hover заново.
-    editor.selection = new vscode.Selection(range.start, newEnd);
-    editor.revealRange(new vscode.Range(range.start, newEnd));
-    // Заново вызывает provideHover в текущей позиции курсора
-    // и показывает подсказку — уже с обновлённым документом.
+    const position = range.start.translate(0, 1);
+    editor.selection = new vscode.Selection(position, position);
+    editor.revealRange(range);
+    await vscode.commands.executeCommand('editor.action.hideHover');
     await vscode.commands.executeCommand('editor.action.showHover');
 }
