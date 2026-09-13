@@ -5,20 +5,11 @@ exports.formatNumber = formatNumber;
 exports.parseNumber = parseNumber;
 exports.replaceLiteral = replaceLiteral;
 const vscode = require("vscode");
-function checkNumber(line) {
-    const pattern = /[1-9]+[0-9]*/;
-    if (pattern.test(line)) {
-        return true;
-    }
-    else {
-        return false;
-    }
+function checkNumber(word) {
+    const NUMBER_PATTERN = /^(0[bB][01]+|0[oO][0-7]+|0[xX][0-9a-fA-F]+|[0-9]+)$/;
+    return NUMBER_PATTERN.test(word);
 }
 function formatNumber(line) {
-    const banSymbols = ['.', ',', 'e'];
-    if (banSymbols.some((symbol) => line.includes(symbol))) {
-        return "-1";
-    }
     if (line[0] === '0' && line[1] === 'b') {
         return "2";
     }
@@ -46,10 +37,6 @@ async function replaceLiteral(args) {
     const edit = new vscode.WorkspaceEdit();
     edit.replace(uri, range, args.newText);
     await vscode.workspace.applyEdit(edit);
-    const editor = await vscode.window.showTextDocument(uri, { preserveFocus: false });
-    const position = range.start.translate(0, 1);
-    editor.selection = new vscode.Selection(position, position);
-    editor.revealRange(range);
     await vscode.commands.executeCommand('editor.action.hideHover');
     await vscode.commands.executeCommand('editor.action.showHover');
 }

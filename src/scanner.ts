@@ -1,20 +1,11 @@
 import * as vscode from 'vscode';
 
-export function checkNumber(line: string): boolean{
-    const pattern = /[1-9]+[0-9]*/;
-    if (pattern.test(line)){
-        return true
-    }
-    else{
-        return false
-    }
+export function checkNumber(word: string): boolean {
+    const pattern = /^(0[bB][01]+|0[oO][0-7]+|0[xX][0-9a-fA-F]+|[0-9]+)$/;
+    return pattern.test(word);
 }
 
 export function formatNumber(line: string): string{
-    const banSymbols = ['.', ',', 'e'];
-    if (banSymbols.some((symbol) => line.includes(symbol))) {
-        return "-1"
-    }
     if (line[0] === '0' && line[1] === 'b'){
         return "2"
     }
