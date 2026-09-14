@@ -11,6 +11,9 @@ async function replaceLiteral(args) {
     const edit = new vscode.WorkspaceEdit();
     edit.replace(uri, range, args.newText);
     await vscode.workspace.applyEdit(edit);
+    const editor = await vscode.window.showTextDocument(uri, { preserveFocus: false });
+    const position = range.start.translate(0, 1);
+    editor.selection = new vscode.Selection(position, position);
     await vscode.commands.executeCommand('editor.action.hideHover');
     await vscode.commands.executeCommand('editor.action.showHover');
 }
