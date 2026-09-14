@@ -5,7 +5,12 @@ exports.buildHoverText = buildHoverText;
 exports.activate = activate;
 exports.deactivate = deactivate;
 const vscode = require("vscode");
-const scanner_1 = require("./scanner");
+const commands_1 = require("./commands");
+const numberLiteral_1 = require("./numberLiteral");
+/*
+ * Строит Markdown-ссылку вида [текст](command:...), которая при клике
+ * запускает команду radixHover.replaceLiteral.
+ */
 function createLink(text, newText, documentUri, wordRange) {
     const args = {
         uri: documentUri.toString(),
@@ -19,6 +24,10 @@ function createLink(text, newText, documentUri, wordRange) {
     return `[${text}](command:radixHover.replaceLiteral?${encoded})`;
 }
 ;
+/*
+ * Формирует текст hover: таблицу значений во всех системах
+ * счисления и строку с кликабельными ссылками на замену.
+ */
 function buildHoverText(num, word, documentUri, wordRange) {
     const lines = [];
     lines.push(`**${word}** — число в системе с основанием ${num.base}`);
@@ -32,6 +41,8 @@ function buildHoverText(num, word, documentUri, wordRange) {
     lines.push('');
     lines.push('Заменить на:');
     let toChangeNumSystemLine = '| Заменить на |';
+    // Не предлагаем заменить число на запись в той же системе счисления,
+    // в которой оно уже записано в коде.
     if (num.base !== '2') {
         toChangeNumSystemLine += ` ${createLink('BIN', num.bin, documentUri, wordRange)} |`;
     }
@@ -47,19 +58,24 @@ function buildHoverText(num, word, documentUri, wordRange) {
     lines.push(toChangeNumSystemLine);
     return lines.join('\n');
 }
+/*
+ * Точка входа расширения.
+ * Регистрирует тестовую команду, команду замены литерала и провайдер
+ * hover, работающий в файлах любого языка.
+ */
 function activate(context) {
     const disposable = vscode.commands.registerCommand('radixHover.hello', () => {
-        vscode.window.showInformationMessage('Hello1');
+        vscode.window.showInformationMessage('Hello');
     });
     context.subscriptions.push(disposable);
-    context.subscriptions.push(vscode.commands.registerCommand('radixHover.replaceLiteral', scanner_1.replaceLiteral));
+    context.subscriptions.push(vscode.commands.registerCommand('radixHover.replaceLiteral', commands_1.replaceLiteral));
     const hoverProvider = vscode.languages.registerHoverProvider({ scheme: '*', language: '*' }, {
         provideHover(document, position) {
             const wordRange = document.getWordRangeAtPosition(position);
             if (wordRange) {
                 const word = document.getText(wordRange);
-                if ((0, scanner_1.checkNumber)(word)) {
-                    const md = new vscode.MarkdownString(buildHoverText((0, scanner_1.parseNumber)(word), word, document.uri, wordRange));
+                if ((0, numberLiteral_1.checkNumber)(word)) {
+                    const md = new vscode.MarkdownString(buildHoverText((0, numberLiteral_1.parseNumber)(word), word, document.uri, wordRange));
                     md.isTrusted = true;
                     return new vscode.Hover(md);
                 }
