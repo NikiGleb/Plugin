@@ -1,19 +1,15 @@
-export interface RadixSystem {
-    base: number;
-    label: string;
-    prefix: string;
-}
-
-export class RadixRegistry{
-    readonly addedSystems: RadixSystem[] = []
-
-    constructor(initial: RadixSystem[]) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.RadixRegistry = void 0;
+exports.createDefaultRegistry = createDefaultRegistry;
+class RadixRegistry {
+    addedSystems = [];
+    constructor(initial) {
         for (const system of initial) {
             this.add(system);
         }
     }
-    
-    private indexOf(base: number): number {
+    indexOf(base) {
         let left = 0;
         let right = this.addedSystems.length - 1;
         while (left <= right) {
@@ -21,17 +17,16 @@ export class RadixRegistry{
             if (this.addedSystems[mid].base === base) {
                 return mid;
             }
-            if (this.addedSystems[mid].base < base){
+            if (this.addedSystems[mid].base < base) {
                 left = mid + 1;
             }
-            else{ 
+            else {
                 right = mid - 1;
             }
         }
         return -1;
     }
-
-    private indexIn(base: number): number {
+    indexIn(base) {
         let left = 0;
         let right = this.addedSystems.length;
         while (left < right) {
@@ -45,21 +40,18 @@ export class RadixRegistry{
         }
         return left;
     }
-
-    add(system: RadixSystem){
-        this.addedSystems.splice(this.indexIn(system.base) - 1, 0, system)
+    add(system) {
+        this.addedSystems.splice(this.indexIn(system.base) - 1, 0, system);
     }
-
-    remove(system: RadixSystem){
+    remove(system) {
         this.addedSystems.splice(this.indexOf(system.base), 1);
     }
-
-    list(): RadixSystem[]{
+    list() {
         return this.addedSystems;
     }
 }
-
-export function createDefaultRegistry(): RadixRegistry {
+exports.RadixRegistry = RadixRegistry;
+function createDefaultRegistry() {
     return new RadixRegistry([
         { base: 2, label: 'BIN', prefix: '0b' },
         { base: 8, label: 'OCT', prefix: '0o' },

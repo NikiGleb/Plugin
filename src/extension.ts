@@ -1,8 +1,8 @@
 import * as vscode from 'vscode'
-import { replaceLiteral } from './commands';
+import { replaceLiteral, addBase } from './commands';
 import { checkNumber, parseNumber, ConvertationNumber } from './numberLiteral';
 import { buildHoverText } from './hover';
-
+import { createDefaultRegistry } from './radixRegistry';
 /*
  * Точка входа расширения.
  * Регистрирует тестовую команду, команду замены литерала и провайдер
@@ -16,6 +16,11 @@ export function activate(context: vscode.ExtensionContext): void {
 
     context.subscriptions.push(
         vscode.commands.registerCommand('radixHover.replaceLiteral', replaceLiteral)
+    );
+
+    const registry = createDefaultRegistry();
+    context.subscriptions.push(
+        vscode.commands.registerCommand('radixHover.addBase', () => addBase(registry))
     );
 
     const hoverProvider = vscode.languages.registerHoverProvider(

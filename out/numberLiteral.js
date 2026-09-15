@@ -40,3 +40,24 @@ function parseNumber(num) {
         base: formatNumber(num),
     };
 }
+const DIGITS = '0123456789abcdefghijklmnopqrstuvwxyz';
+function getId(symb) {
+    let id = 0;
+    while (DIGITS[id] !== symb) {
+        id++;
+    }
+    return id;
+}
+function toRadix(startNum, startBase, endBase) {
+    let num10 = 0;
+    let endNum = '';
+    for (const symb of startNum) {
+        num10 = num10 * Number(startBase) + getId(symb);
+    }
+    while (num10 > 0) {
+        const rest = num10 % Number(endBase);
+        endNum += DIGITS[rest];
+        num10 = Math.floor(num10 / Number(endBase));
+    }
+    return endNum.split('').reverse().join('');
+}

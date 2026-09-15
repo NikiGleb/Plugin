@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { RadixRegistry } from './radixRegistry';
 
 /* 
  * Структура для хранения данных, необходимых для изменения литерала.
@@ -33,3 +34,25 @@ export async function replaceLiteral(args: ReplaceArgs) {
     await vscode.commands.executeCommand('editor.action.hideHover');
     await vscode.commands.executeCommand('editor.action.showHover');
 }
+
+export async function addBase(registry: RadixRegistry){
+    const input = await vscode.window.showInputBox({
+        title: 'Add new radix',
+        prompt: 'Enter the radix (from 2 to 36).',
+        validateInput: (value) => {
+            const num = Number(value)
+            if(!Number.isInteger(num) || num < 2 || num > 36){
+                return 'Incorrect radix'
+            }
+            return null;
+        }
+    })
+    if (!input){
+        return;
+    }
+
+    const base = Number(input);
+    registry.add({base, label: `BASE-${base}`, prefix: ''})
+    vscode.window.showInformationMessage(`Radix added succesfully`);
+}
+

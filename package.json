@@ -19,6 +19,10 @@
       {
         "command": "radixHover.replaceLiteral",
         "title": "Заменить литерал"
+      },
+      {
+        "command": "radixHover.addBase",
+        "title": "Radix Hover: добавить систему счисления"
       }
     ]
   },
