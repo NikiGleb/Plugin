@@ -31,9 +31,11 @@ export function activate(context: vscode.ExtensionContext): void {
                 if (wordRange) {
                     const word = document.getText(wordRange);
                     if (checkNumber(word)) {
-                        const md = new vscode.MarkdownString(buildHoverText(parseNumber(word), word, document.uri, wordRange))
+                        const md = new vscode.MarkdownString(
+                            buildHoverText(parseNumber(word), word, document.uri, wordRange, registry)
+                        );
                         md.isTrusted = true;
-                        return new vscode.Hover(md)
+                        return new vscode.Hover(md);
                     }
                 }
             }

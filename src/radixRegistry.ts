@@ -1,3 +1,9 @@
+import { toRadix, ConvertationNumber  } from './numberLiteral';
+
+export function formatInSystem(system: RadixSystem, num: ConvertationNumber): string {
+    return system.prefix + toRadix(num.digits, num.base, String(system.base));
+}
+
 export interface RadixSystem {
     base: number;
     label: string;

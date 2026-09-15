@@ -1,7 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RadixRegistry = void 0;
+exports.formatInSystem = formatInSystem;
 exports.createDefaultRegistry = createDefaultRegistry;
+const numberLiteral_1 = require("./numberLiteral");
+function formatInSystem(system, num) {
+    return system.prefix + (0, numberLiteral_1.toRadix)(num.digits, num.base, String(system.base));
+}
 class RadixRegistry {
     addedSystems = [];
     constructor(initial) {

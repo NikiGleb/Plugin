@@ -26,7 +26,7 @@ function activate(context) {
             if (wordRange) {
                 const word = document.getText(wordRange);
                 if ((0, numberLiteral_1.checkNumber)(word)) {
-                    const md = new vscode.MarkdownString((0, hover_1.buildHoverText)((0, numberLiteral_1.parseNumber)(word), word, document.uri, wordRange));
+                    const md = new vscode.MarkdownString((0, hover_1.buildHoverText)((0, numberLiteral_1.parseNumber)(word), word, document.uri, wordRange, registry));
                     md.isTrusted = true;
                     return new vscode.Hover(md);
                 }

@@ -2,7 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.checkNumber = checkNumber;
 exports.formatNumber = formatNumber;
+exports.getDigitsBody = getDigitsBody;
 exports.parseNumber = parseNumber;
+exports.toRadix = toRadix;
 /*
  * Проверяет, является ли слово корректным числовым литералом.
  * Допустимые формы: двоичная, восьмеричная, шестнадцатеричная и десятичная.
@@ -27,16 +29,14 @@ function formatNumber(line) {
     }
     return "10";
 }
-/*
- * Переводит число во все поддерживаемые системы счисления.
- */
+function getDigitsBody(word) {
+    const base = formatNumber(word);
+    const body = base === '10' ? word : word.slice(2);
+    return body.toLowerCase();
+}
 function parseNumber(num) {
-    const value = BigInt(num);
     return {
-        bin: '0b' + value.toString(2),
-        oct: '0o' + value.toString(8),
-        dec: value.toString(10),
-        hex: '0x' + value.toString(16),
+        digits: getDigitsBody(num),
         base: formatNumber(num),
     };
 }

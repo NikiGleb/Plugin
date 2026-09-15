@@ -2,10 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createLink = createLink;
 exports.buildHoverText = buildHoverText;
-/*
- * Строит Markdown-ссылку вида [текст](command:...), которая при клике
- * запускает команду radixHover.replaceLiteral.
- */
+const radixRegistry_1 = require("./radixRegistry");
 function createLink(text, newText, documentUri, wordRange) {
     const args = {
         uri: documentUri.toString(),
@@ -18,38 +15,23 @@ function createLink(text, newText, documentUri, wordRange) {
     const encoded = encodeURIComponent(JSON.stringify([args]));
     return `[${text}](command:radixHover.replaceLiteral?${encoded})`;
 }
-;
-/*
- * Формирует текст hover: таблицу значений во всех системах
- * счисления и строку с кликабельными ссылками на замену.
- */
-function buildHoverText(num, word, documentUri, wordRange) {
+function buildHoverText(num, word, documentUri, wordRange, registry) {
     const lines = [];
     lines.push(`**${word}** — число в системе с основанием ${num.base}`);
     lines.push('');
     lines.push('| Система | Значение |');
     lines.push('|---|---|');
-    lines.push(`| bin | ${num.bin} |`);
-    lines.push(`| oct | ${num.oct} |`);
-    lines.push(`| dec | ${num.dec} |`);
-    lines.push(`| hex | ${num.hex} |`);
+    for (const system of registry.list()) {
+        lines.push(`| ${system.label} | ${(0, radixRegistry_1.formatInSystem)(system, num)} |`);
+    }
     lines.push('');
     lines.push('Заменить на:');
-    let toChangeNumSystemLine = '| Заменить на |';
-    // Не предлагаем заменить число на запись в той же системе счисления,
-    // в которой оно уже записано в коде.
-    if (num.base !== '2') {
-        toChangeNumSystemLine += ` ${createLink('BIN', num.bin, documentUri, wordRange)} |`;
+    let row = '| Заменить на |';
+    for (const system of registry.list()) {
+        if (String(system.base) === num.base)
+            continue;
+        row += ` ${createLink(system.label, (0, radixRegistry_1.formatInSystem)(system, num), documentUri, wordRange)} |`;
     }
-    if (num.base !== '8') {
-        toChangeNumSystemLine += ` ${createLink('OCT', num.oct, documentUri, wordRange)} |`;
-    }
-    if (num.base !== '10') {
-        toChangeNumSystemLine += ` ${createLink('DEC', num.dec, documentUri, wordRange)} |`;
-    }
-    if (num.base !== '16') {
-        toChangeNumSystemLine += ` ${createLink('HEX', num.hex, documentUri, wordRange)} |`;
-    }
-    lines.push(toChangeNumSystemLine);
+    lines.push(row);
     return lines.join('\n');
 }

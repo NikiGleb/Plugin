@@ -21,7 +21,7 @@ async function replaceLiteral(args) {
 async function addBase(registry) {
     const input = await vscode.window.showInputBox({
         title: 'Add new radix',
-        prompt: 'Enter the bradix (from 2 to 36).',
+        prompt: 'Enter the radix (from 2 to 36).',
         validateInput: (value) => {
             const num = Number(value);
             if (!Number.isInteger(num) || num < 2 || num > 36) {

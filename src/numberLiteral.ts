@@ -29,24 +29,19 @@ export function formatNumber(line: string): string {
  * Также содержит информацию о системе счисления, в которой число записано изначально.
  */
 export interface ConvertationNumber {
-    bin: string;
-    oct: string;
-    dec: string;
-    hex: string;
+    digits: string;
     base: string;
 }
 
-/*
- * Переводит число во все поддерживаемые системы счисления.
- */
-export function parseNumber(num: string): ConvertationNumber {
-    const value = BigInt(num);
+export function getDigitsBody(word: string): string {
+    const base = formatNumber(word);
+    const body = base === '10' ? word : word.slice(2);
+    return body.toLowerCase();
+}
 
+export function parseNumber(num: string): ConvertationNumber {
     return {
-        bin: '0b' + value.toString(2),
-        oct: '0o' + value.toString(8),
-        dec: value.toString(10),
-        hex: '0x' + value.toString(16),
+        digits: getDigitsBody(num),
         base: formatNumber(num),
     };
 }
@@ -59,7 +54,7 @@ function getId(symb: string){
     }
     return id;
 }
-function toRadix(startNum: string, startBase: string, endBase: string){
+export function toRadix(startNum: string, startBase: string, endBase: string){
     let num10: number = 0;
     let endNum: string ='';
 
