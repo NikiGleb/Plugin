@@ -3,7 +3,7 @@
  * Допустимые формы: двоичная, восьмеричная, шестнадцатеричная и десятичная.
  */
 export function checkNumber(word: string): boolean {
-    const pattern = /^(0[bB][01]+|0[oO][0-7]+|0[xX][0-9a-fA-F]+|[0-9]+)$/;
+    const pattern = /^(0[bB][01]+|0[oO][0-7]+|0[xX][0-9a-fA-F]+|[0-9]+|[0-9a-zA-Z])$/;
     return pattern.test(word);
 }
 
