@@ -3,7 +3,7 @@
  * Допустимые формы: двоичная, восьмеричная, шестнадцатеричная и десятичная.
  */
 export function checkNumber(word: string): boolean {
-    const pattern = /^(0[bB][01]+|0[oO][0-7]+|0[xX][0-9a-fA-F]+|[0-9]+|[0-9a-zA-Z])$/;
+    const pattern = /^(0[bB][01]+|0[oO][0-7]+|0[xX][0-9a-fA-F]+|[0-9]+)$/;
     return pattern.test(word);
 }
 
@@ -62,6 +62,10 @@ export function toRadix(startNum: string, startBase: string, endBase: string){
         num10 = num10 * Number(startBase) + getId(symb);
     }
 
+    if (num10 === 0){
+        return '0'
+    }
+    
     while (num10 > 0){
         const rest = num10 % Number(endBase);
         endNum += DIGITS[rest];
