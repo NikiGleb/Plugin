@@ -1,6 +1,6 @@
 import { toRadix, ConvertationNumber } from './numberLiteral';
 
-/* Одна система счисления: основание, подпись для таблицы и префикс записи. */
+/* Структура для системы счисления: основание, подпись для таблицы и префикс записи. */
 export interface RadixSystem {
     base: number;
     label: string;
@@ -8,9 +8,7 @@ export interface RadixSystem {
 }
 
 /*
- * Реестр систем счисления. Хранится как массив, отсортированный по
- * возрастанию основания — это позволяет искать, вставлять и удалять
- * системы двоичным поиском за O(log n).
+ * Массив систем счисления, отсортированный по возрастанию основания.
  */
 export class RadixRegistry {
     readonly addedSystems: RadixSystem[] = []

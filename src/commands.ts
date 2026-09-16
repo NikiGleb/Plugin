@@ -61,7 +61,7 @@ const RADIX_COMMENT_PATTERN = /\/\/\s*radix\s*:\s*\d+/i;
 
 /*
  * Добавляет, обновляет или удаляет комментарий // radix: N справа от числа
- * на той же строке. Не знает про сам литерал.
+ * на той же строке.
  */
 export async function replaceComment(args: ReplaceCommentArgs) {
     const uri = vscode.Uri.parse(args.uri);
@@ -90,7 +90,7 @@ export async function replaceComment(args: ReplaceCommentArgs) {
     await vscode.workspace.applyEdit(edit);
 }
 
-/* Подбирает читаемую подпись для новой системы счисления. */
+/* Подставляет подпись для стандартных систем счисления. */
 function labelForNewBase(base: number): string {
     if (base === 2) {
         return `BIN`
@@ -107,7 +107,7 @@ function labelForNewBase(base: number): string {
     return `BASE-${base}`
 }
 
-/* Диалог добавления новой системы счисления в реестр. */
+/* Плажка для добавления новой системы счисления в реестр. */
 export async function addBase(registry: RadixRegistry) {
     const input = await vscode.window.showInputBox({
         title: 'Add new radix',
@@ -138,7 +138,7 @@ export async function addBase(registry: RadixRegistry) {
     vscode.window.showInformationMessage(`Radix added successfully`);
 }
 
-/* Диалог удаления системы счисления из реестра. */
+/* Плажка для удаления системы счисления из реестра. */
 export async function removeBase(registry: RadixRegistry) {
     const picked = await vscode.window.showInputBox({
         title: 'Remove radix',
