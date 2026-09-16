@@ -45,8 +45,13 @@ class RadixRegistry {
         }
         return left;
     }
+    has(base) {
+        return this.indexOf(base) !== -1;
+    }
     add(system) {
-        this.addedSystems.splice(this.indexIn(system.base) - 1, 0, system);
+        if (!this.has(system.base)) {
+            this.addedSystems.splice(this.indexIn(system.base) - 1, 0, system);
+        }
     }
     remove(system) {
         this.addedSystems.splice(this.indexOf(system.base), 1);

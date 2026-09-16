@@ -54,6 +54,9 @@ function toRadix(startNum, startBase, endBase) {
     for (const symb of startNum) {
         num10 = num10 * Number(startBase) + getId(symb);
     }
+    if (num10 === 0) {
+        return '0';
+    }
     while (num10 > 0) {
         const rest = num10 % Number(endBase);
         endNum += DIGITS[rest];

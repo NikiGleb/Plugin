@@ -24,6 +24,9 @@ async function addBase(registry) {
         prompt: 'Enter the radix (from 2 to 36).',
         validateInput: (value) => {
             const num = Number(value);
+            if (registry.has(num)) {
+                return 'This radix already exists';
+            }
             if (!Number.isInteger(num) || num < 2 || num > 36) {
                 return 'Incorrect radix';
             }

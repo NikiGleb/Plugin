@@ -52,8 +52,14 @@ export class RadixRegistry{
         return left;
     }
 
+    has(base: number): boolean{
+        return this.indexOf(base) !== -1
+    }
+
     add(system: RadixSystem){
-        this.addedSystems.splice(this.indexIn(system.base) - 1, 0, system)
+        if (!this.has(system.base)) {
+            this.addedSystems.splice(this.indexIn(system.base), 0, system)
+        }
     }
 
     remove(system: RadixSystem){
