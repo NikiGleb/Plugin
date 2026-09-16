@@ -1,16 +1,18 @@
-import { toRadix, ConvertationNumber  } from './numberLiteral';
+import { toRadix, ConvertationNumber } from './numberLiteral';
 
-export function formatInSystem(system: RadixSystem, num: ConvertationNumber): string {
-    return system.prefix + toRadix(num.digits, num.base, String(system.base));
-}
-
+/* Одна система счисления: основание, подпись для таблицы и префикс записи. */
 export interface RadixSystem {
     base: number;
     label: string;
     prefix: string;
 }
 
-export class RadixRegistry{
+/*
+ * Реестр систем счисления. Хранится как массив, отсортированный по
+ * возрастанию основания — это позволяет искать, вставлять и удалять
+ * системы двоичным поиском за O(log n).
+ */
+export class RadixRegistry {
     readonly addedSystems: RadixSystem[] = []
 
     constructor(initial: RadixSystem[]) {
@@ -18,7 +20,8 @@ export class RadixRegistry{
             this.add(system);
         }
     }
-    
+
+    /* Двоичный поиск индекса существующей системы. -1, если её нет. */
     private indexOf(base: number): number {
         let left = 0;
         let right = this.addedSystems.length - 1;
@@ -27,16 +30,17 @@ export class RadixRegistry{
             if (this.addedSystems[mid].base === base) {
                 return mid;
             }
-            if (this.addedSystems[mid].base < base){
+            if (this.addedSystems[mid].base < base) {
                 left = mid + 1;
             }
-            else{ 
+            else {
                 right = mid - 1;
             }
         }
         return -1;
     }
 
+    /* Двоичный поиск позиции вставки, чтобы массив остался отсортированным. */
     private indexIn(base: number): number {
         let left = 0;
         let right = this.addedSystems.length;
@@ -52,25 +56,35 @@ export class RadixRegistry{
         return left;
     }
 
-    has(base: number): boolean{
+    /* Есть ли уже в реестре система с таким основанием. */
+    has(base: number): boolean {
         return this.indexOf(base) !== -1
     }
 
-    add(system: RadixSystem){
+    /* Добавляет систему счисления, сохраняя сортировку. Дубли игнорируются. */
+    add(system: RadixSystem) {
         if (!this.has(system.base)) {
             this.addedSystems.splice(this.indexIn(system.base), 0, system)
         }
     }
 
-    remove(base: number){
+    /* Удаляет систему счисления по основанию. */
+    remove(base: number) {
         this.addedSystems.splice(this.indexOf(base), 1);
     }
 
-    list(): RadixSystem[]{
+    /* Список всех систем счисления по возрастанию основания. */
+    list(): RadixSystem[] {
         return this.addedSystems;
     }
 }
 
+/* Форматирует значение в заданной системе счисления, с префиксом. */
+export function formatInSystem(system: RadixSystem, num: ConvertationNumber): string {
+    return system.prefix + toRadix(num.digits, num.base, String(system.base));
+}
+
+/* Реестр по умолчанию: 4 стандартные системы счисления. */
 export function createDefaultRegistry(): RadixRegistry {
     return new RadixRegistry([
         { base: 2, label: 'BIN', prefix: '0b' },

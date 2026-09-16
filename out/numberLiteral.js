@@ -1,102 +1,52 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.resolveConvertationNumber = resolveConvertationNumber;
-exports.checkNumber = checkNumber;
-exports.formatNumber = formatNumber;
-exports.findCommentRadix = findCommentRadix;
-exports.isValidInBase = isValidInBase;
-exports.parseNumberAs = parseNumberAs;
-exports.getDigitsBody = getDigitsBody;
-exports.parseNumber = parseNumber;
 exports.toRadix = toRadix;
+// Одна регулярка на все формы префикса; группа захвата в каждой
+// альтернативе сразу даёт цифры без префикса — не нужен отдельный slice.
+const NUMBER_PATTERN = /^(?:0[bB]([01]+)|0[oO]([0-7]+)|0[xX]([0-9a-fA-F]+)|([0-9]+))$/;
+const RADIX_COMMENT_PATTERN = /\/\/\s*radix\s*:\s*(\d+)/i;
 /*
- * Определяет ConvertationNumber для литерала под курсором за один вызов:
- * 1) если есть префикс (0b/0o/0x) — база берётся из него;
+ * Единственная публичная точка входа для работы с числами под курсором.
+ * Определяет, является ли word числом, и если да — возвращает его как
+ * ConvertationNumber с правильной базой:
+ * 1) если есть префикс (0b/0o/0x) — база и цифры берутся прямо из regex-групп;
  * 2) если префикса нет, но рядом валидный // radix: N — база из комментария;
  * 3) иначе — обычная десятичная запись (база 10).
- * Вызывается один раз при наведении, результат используется везде дальше.
+ * Если word вообще не число — возвращает null.
  */
+function checkBasePrefix(word) {
+    if (word.length <= 2) {
+        return null;
+    }
+    if (word[0] === '0' && word[1] === 'b')
+        return '2';
+    if (word[0] === '0' && word[1] === 'o')
+        return '8';
+    if (word[0] === '0' && word[1] === 'x')
+        return '16';
+    return null;
+}
 function resolveConvertationNumber(word, line, afterChar) {
-    const prefixBase = formatNumber(word);
-    if (prefixBase !== '10') {
-        return parseNumber(word);
-    }
-    const commentBase = findCommentRadix(line, afterChar);
-    if (commentBase !== null && isValidInBase(word, commentBase)) {
-        return parseNumberAs(word, commentBase);
-    }
-    return parseNumber(word);
-}
-/*
- * Проверяет, является ли слово корректным числовым литералом.
- * Допустимые формы: двоичная, восьмеричная, шестнадцатеричная и десятичная.
- */
-function checkNumber(word) {
-    const pattern = /^(0[bB][01]+|0[oO][0-7]+|0[xX][0-9a-fA-F]+|[0-9]+)$/;
-    return pattern.test(word);
-}
-/*
- * Определяет систему счисления литерала по его префиксу.
- * Вызывается только для строк, уже прошедших проверку checkNumber.
- */
-function formatNumber(line) {
-    if (line[0] === '0' && line[1] === 'b') {
-        return "2";
-    }
-    if (line[0] === '0' && line[1] === 'o') {
-        return "8";
-    }
-    if (line[0] === '0' && line[1] === 'x') {
-        return "16";
-    }
-    return "10";
-}
-function findCommentRadix(line, afterChar) {
-    const pattern = /\/\/\s*radix\s*:\s*(\d+)/i;
-    const rest = line.slice(afterChar);
-    const match = pattern.exec(rest);
+    const match = NUMBER_PATTERN.exec(word);
     if (!match) {
         return null;
     }
-    const base = Number(match[1]);
-    if (!Number.isInteger(base) || base < 2 || base > 36) {
-        return null;
+    if (checkBasePrefix(word) !== null) {
+        return { digits: word.slice(2).toLowerCase(), base: String(checkBasePrefix(word)) };
     }
-    return base;
-}
-function isValidInBase(word, base) {
-    for (const symb of word) {
-        if (getId(symb) >= base) {
-            return false;
-        }
+    // Префикса нет — смотрим, нет ли рядом комментария // radix: N.
+    const commentBase = tryGetCommentBase(word, line, afterChar);
+    if (commentBase !== null) {
+        return { digits: word.toLowerCase(), base: String(commentBase) };
     }
-    return true;
+    // Ни того, ни другого — обычная десятичная запись.
+    return { digits: word.toLowerCase(), base: '10' };
 }
-function parseNumberAs(word, base) {
-    return {
-        digits: word.toLowerCase(),
-        base: String(base),
-    };
-}
-function getDigitsBody(word) {
-    const base = formatNumber(word);
-    const body = base === '10' ? word : word.slice(2);
-    return body.toLowerCase();
-}
-function parseNumber(num) {
-    return {
-        digits: getDigitsBody(num),
-        base: formatNumber(num),
-    };
-}
-const DIGITS = '0123456789abcdefghijklmnopqrstuvwxyz';
-function getId(symb) {
-    let id = 0;
-    while (DIGITS[id] !== symb) {
-        id++;
-    }
-    return id;
-}
+/*
+ * Переводит запись числа из одной произвольной системы счисления в другую
+ * вручную, методом накопления в десятичное значение и обратного деления.
+ */
 function toRadix(startNum, startBase, endBase) {
     let num10 = 0;
     let endNum = '';
@@ -112,4 +62,36 @@ function toRadix(startNum, startBase, endBase) {
         num10 = Math.floor(num10 / Number(endBase));
     }
     return endNum.split('').reverse().join('');
+}
+/*
+ * Ищет справа от числа комментарий "// radix: N" и сразу проверяет,
+ * что цифры числа допустимы в этой системе счисления. Возвращает
+ * найденную базу или null, если комментария нет либо он некорректен.
+ */
+function tryGetCommentBase(word, line, afterChar) {
+    const rest = line.slice(afterChar);
+    const match = RADIX_COMMENT_PATTERN.exec(rest);
+    if (!match) {
+        return null;
+    }
+    const base = Number(match[1]);
+    if (!Number.isInteger(base) || base < 2 || base > 36) {
+        return null;
+    }
+    for (const symb of word) {
+        if (getId(symb) >= base) {
+            return null;
+        }
+    }
+    return base;
+}
+/* Алфавит цифр: индекс символа в этой строке — его числовое значение. */
+const DIGITS = '0123456789abcdefghijklmnopqrstuvwxyz';
+/* Находит позицию символа symb в алфавите DIGITS — его "цифровое значение". */
+function getId(symb) {
+    let id = 0;
+    while (DIGITS[id] !== symb) {
+        id++;
+    }
+    return id;
 }

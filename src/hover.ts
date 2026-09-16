@@ -2,26 +2,10 @@ import * as vscode from 'vscode';
 import { ConvertationNumber } from './numberLiteral';
 import { RadixRegistry, formatInSystem } from './radixRegistry';
 
-export function createLink(
-    text: string,
-    newText: string,
-    documentUri: vscode.Uri,
-    wordRange: vscode.Range,
-    radixComment: number | null
-): string {
-    const args = {
-        uri: documentUri.toString(),
-        startLine: wordRange.start.line,
-        startChar: wordRange.start.character,
-        endLine: wordRange.end.line,
-        endChar: wordRange.end.character,
-        newText: newText,
-        radixComment,
-    };
-    const encoded = encodeURIComponent(JSON.stringify([args]));
-    return `[${text}](command:radixHover.replaceLiteral?${encoded})`;
-}
-
+/*
+ * Формирует текст hover: таблицу значений во всех системах счисления
+ * реестра, с кликабельной ссылкой замены в каждой строке.
+ */
 export function buildHoverText(
     num: ConvertationNumber,
     word: string,
@@ -46,4 +30,28 @@ export function buildHoverText(
     }
 
     return lines.join('\n');
+}
+
+/*
+ * Строит Markdown-ссылку вида [текст](command:...), которая при клике
+ * запускает команду radixHover.replaceLiteral с нужными аргументами.
+ */
+export function createLink(
+    text: string,
+    newText: string,
+    documentUri: vscode.Uri,
+    wordRange: vscode.Range,
+    radixComment: number | null
+): string {
+    const args = {
+        uri: documentUri.toString(),
+        startLine: wordRange.start.line,
+        startChar: wordRange.start.character,
+        endLine: wordRange.end.line,
+        endChar: wordRange.end.character,
+        newText: newText,
+        radixComment,
+    };
+    const encoded = encodeURIComponent(JSON.stringify([args]));
+    return `[${text}](command:radixHover.replaceLiteral?${encoded})`;
 }

@@ -1,54 +1,98 @@
+/* Число вместе с системой счисления, в которой его нужно понимать. */
+export interface ConvertationNumber {
+    digits: string;
+    base: string;
+}
+
+// Одна регулярка на все формы префикса; группа захвата в каждой
+// альтернативе сразу даёт цифры без префикса — не нужен отдельный slice.
+const NUMBER_PATTERN = /^(?:0[bB]([01]+)|0[oO]([0-7]+)|0[xX]([0-9a-fA-F]+)|([0-9]+))$/;
+const RADIX_COMMENT_PATTERN = /\/\/\s*radix\s*:\s*(\d+)/i;
+
+
 /*
- * Определяет ConvertationNumber для литерала под курсором за один вызов:
- * 1) если есть префикс (0b/0o/0x) — база берётся из него;
+ * Единственная публичная точка входа для работы с числами под курсором.
+ * Определяет, является ли word числом, и если да — возвращает его как
+ * ConvertationNumber с правильной базой:
+ * 1) если есть префикс (0b/0o/0x) — база и цифры берутся прямо из regex-групп;
  * 2) если префикса нет, но рядом валидный // radix: N — база из комментария;
  * 3) иначе — обычная десятичная запись (база 10).
- * Вызывается один раз при наведении, результат используется везде дальше.
+ * Если word вообще не число — возвращает null.
  */
-export function resolveConvertationNumber(word: string, line: string, afterChar: number): ConvertationNumber {
-    const prefixBase = formatNumber(word);
-    if (prefixBase !== '10') {
-        return parseNumber(word);
+function checkBasePrefix(word: string): null | string{
+    if (word.length <= 2){
+        return null;
     }
-
-    const commentBase = findCommentRadix(line, afterChar);
-    if (commentBase !== null && isValidInBase(word, commentBase)) {
-        return parseNumberAs(word, commentBase);
-    }
-
-    return parseNumber(word);
+    if (word[0] === '0' && word[1] === 'b') return '2';
+    if (word[0] === '0' && word[1] === 'o') return '8';
+    if (word[0] === '0' && word[1] === 'x') return '16';
+    return null;
 }
+export function resolveConvertationNumber(word: string, line: string, afterChar: number): ConvertationNumber | null {
+    const match = NUMBER_PATTERN.exec(word);
+    if (!match) {
+        return null;
+    }
+
+    if (checkBasePrefix(word) !== null){
+        return {digits: word.slice(2).toLowerCase(), base: String(checkBasePrefix(word))};
+    }
+
+    // Префикса нет — смотрим, нет ли рядом комментария // radix: N.
+    const commentBase = tryGetCommentBase(word, line, afterChar);
+    if (commentBase !== null) {
+        return { digits: word.toLowerCase(), base: String(commentBase) };
+    }
+
+    // Ни того, ни другого — обычная десятичная запись.
+    return { digits: word.toLowerCase(), base: '10' };
+}
+
+/* Алфавит цифр: индекс символа в этой строке — его числовое значение. */
+const DIGITS = '0123456789abcdefghijklmnopqrstuvwxyz';
+
+/* Находит позицию символа symb в алфавите DIGITS — его "цифровое значение". */
+function getId(symb: string) {
+    let id = 0;
+    while (DIGITS[id] !== symb) {
+        id++;
+    }
+    return id;
+}
+
 /*
- * Проверяет, является ли слово корректным числовым литералом.
- * Допустимые формы: двоичная, восьмеричная, шестнадцатеричная и десятичная.
+ * Переводит запись числа из одной произвольной системы счисления в другую
+ * вручную, методом накопления в десятичное значение и обратного деления.
  */
-export function checkNumber(word: string): boolean {
-    const pattern = /^(0[bB][01]+|0[oO][0-7]+|0[xX][0-9a-fA-F]+|[0-9]+)$/;
-    return pattern.test(word);
+export function toRadix(startNum: string, startBase: string, endBase: string) {
+    let num10: number = 0;
+    let endNum: string = '';
+
+    for (const symb of startNum) {
+        num10 = num10 * Number(startBase) + getId(symb);
+    }
+
+    if (num10 === 0) {
+        return '0'
+    }
+
+    while (num10 > 0) {
+        const rest = num10 % Number(endBase);
+        endNum += DIGITS[rest];
+        num10 = Math.floor(num10 / Number(endBase));
+    }
+
+    return endNum.split('').reverse().join('');
 }
 
 /*
- * Определяет систему счисления литерала по его префиксу.
- * Вызывается только для строк, уже прошедших проверку checkNumber.
+ * Ищет справа от числа комментарий "// radix: N" и сразу проверяет,
+ * что цифры числа допустимы в этой системе счисления. Возвращает
+ * найденную базу или null, если комментария нет либо он некорректен.
  */
-export function formatNumber(line: string): string {
-    if (line[0] === '0' && line[1] === 'b') {
-        return "2"
-    }
-    if (line[0] === '0' && line[1] === 'o') {
-        return "8"
-    }
-    if (line[0] === '0' && line[1] === 'x') {
-        return "16"
-    }
-    return "10"
-}
-
-export function findCommentRadix(line: string, afterChar: number): null | number{
-    const pattern = /\/\/\s*radix\s*:\s*(\d+)/i
+function tryGetCommentBase(word: string, line: string, afterChar: number): number | null {
     const rest = line.slice(afterChar);
-    const match = pattern.exec(rest);
-
+    const match = RADIX_COMMENT_PATTERN.exec(rest);
     if (!match) {
         return null;
     }
@@ -58,72 +102,11 @@ export function findCommentRadix(line: string, afterChar: number): null | number
         return null;
     }
 
-    return base;
-}
-
-
-export function isValidInBase(word: string, base: number): boolean{
-    for (const symb of word){
-        if (getId(symb) >= base){
-            return false
+    for (const symb of word) {
+        if (getId(symb) >= base) {
+            return null;
         }
     }
-    return true
-}
 
-export function parseNumberAs(word: string, base: number): ConvertationNumber {
-    return {
-        digits: word.toLowerCase(),
-        base: String(base),
-    };
-}
-/*
- * Структура для хранения числа во всех поддерживаемых системах счисления.
- * Также содержит информацию о системе счисления, в которой число записано изначально.
- */
-export interface ConvertationNumber {  
-    digits: string;
-    base: string;
-}
-
-export function getDigitsBody(word: string): string {
-    const base = formatNumber(word);
-    const body = base === '10' ? word : word.slice(2);
-    return body.toLowerCase();
-}
-
-export function parseNumber(num: string): ConvertationNumber {
-    return {
-        digits: getDigitsBody(num),
-        base: formatNumber(num),
-    };
-}
-
-const DIGITS = '0123456789abcdefghijklmnopqrstuvwxyz';
-function getId(symb: string){
-    let id = 0;
-    while(DIGITS[id]!==symb){
-        id++;
-    }
-    return id;
-}
-export function toRadix(startNum: string, startBase: string, endBase: string){
-    let num10: number = 0;
-    let endNum: string ='';
-
-    for(const symb of startNum){
-        num10 = num10 * Number(startBase) + getId(symb);
-    }
-
-    if (num10 === 0){
-        return '0'
-    }
-
-    while (num10 > 0){
-        const rest = num10 % Number(endBase);
-        endNum += DIGITS[rest];
-        num10 = Math.floor(num10 / Number(endBase));
-    }
-
-    return endNum.split('').reverse().join('');
+    return base;
 }

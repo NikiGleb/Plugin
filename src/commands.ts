@@ -1,9 +1,7 @@
 import * as vscode from 'vscode';
 import { RadixRegistry } from './radixRegistry';
 
-/* 
- * Структура для хранения данных, необходимых для изменения литерала.
-*/
+/* Структура для хранения данных, необходимых для изменения литерала. */
 export interface ReplaceArgs {
     uri: string;
     startLine: number;
@@ -14,16 +12,20 @@ export interface ReplaceArgs {
     radixComment: number | null;
 }
 
-const RADIX_COMMENT_PATTERN = /\/\/\s*radix\s*:\s*\d+/i;
-
+/*
+ * Данные для команды обновления комментария // radix: N.
+ * Не знает про сам литерал — только про позицию "после него".
+ */
 export interface ReplaceCommentArgs {
     uri: string;
     line: number;
     afterChar: number;
     radixComment: number | null;
 }
+
 /**
- * Заменяет литерал в документе на новую запись и обновляет hover.
+ * Заменяет литерал в документе на новую запись, поручает обновление
+ * комментария replaceComment, затем переоткрывает hover.
  */
 export async function replaceLiteral(args: ReplaceArgs) {
     const uri = vscode.Uri.parse(args.uri);
@@ -36,6 +38,7 @@ export async function replaceLiteral(args: ReplaceArgs) {
     edit.replace(uri, range, args.newText);
     await vscode.workspace.applyEdit(edit);
 
+    // Литерал мог сменить длину — пересчитываем позицию "конец литерала".
     const newEndChar = args.startChar + args.newText.length;
 
     await vscode.commands.executeCommand('radixHover.replaceComment', {
@@ -53,10 +56,17 @@ export async function replaceLiteral(args: ReplaceArgs) {
     await vscode.commands.executeCommand('editor.action.showHover');
 }
 
+/* Регулярка для поиска комментария // radix: N в остатке строки после литерала. */
+const RADIX_COMMENT_PATTERN = /\/\/\s*radix\s*:\s*\d+/i;
+
+/*
+ * Добавляет, обновляет или удаляет комментарий // radix: N справа от числа
+ * на той же строке. Не знает про сам литерал.
+ */
 export async function replaceComment(args: ReplaceCommentArgs) {
     const uri = vscode.Uri.parse(args.uri);
     const document = await vscode.workspace.openTextDocument(uri);
-    
+
     const radixComment = args.radixComment ?? null;
     const lineText = document.lineAt(args.line).text;
     const restOfLine = lineText.slice(args.afterChar);
@@ -69,10 +79,10 @@ export async function replaceComment(args: ReplaceCommentArgs) {
         const commentStart = args.afterChar + match.index;
         const commentRange = new vscode.Range(new vscode.Position(args.line, commentStart), endOfLine);
         edit.replace(uri, commentRange, radixComment === null ? '' : `// radix: ${radixComment}`);
-    } 
+    }
     else if (radixComment !== null) {
         edit.insert(uri, endOfLine, ` // radix: ${radixComment}`);
-    } 
+    }
     else {
         return;
     }
@@ -80,34 +90,36 @@ export async function replaceComment(args: ReplaceCommentArgs) {
     await vscode.workspace.applyEdit(edit);
 }
 
-function labelForNewBase(base: number): string{
-    if (base === 2){
+/* Подбирает читаемую подпись для новой системы счисления. */
+function labelForNewBase(base: number): string {
+    if (base === 2) {
         return `BIN`
     }
-    if (base === 8){
+    if (base === 8) {
         return `OCT`
     }
-    if (base === 10){
+    if (base === 10) {
         return `DEC`
     }
-    if (base === 16){
+    if (base === 16) {
         return `HEX`
     }
     return `BASE-${base}`
 }
 
-export async function addBase(registry: RadixRegistry){
+/* Диалог добавления новой системы счисления в реестр. */
+export async function addBase(registry: RadixRegistry) {
     const input = await vscode.window.showInputBox({
         title: 'Add new radix',
         prompt: 'Enter the radix (from 2 to 36).',
         validateInput: (value) => {
             const num = Number(value)
 
-            if (registry.has(num)){
+            if (registry.has(num)) {
                 return 'This radix already exists'
             }
 
-            if(!Number.isInteger(num) || num < 2 || num > 36){
+            if (!Number.isInteger(num) || num < 2 || num > 36) {
                 return 'Incorrect radix'
             }
 
@@ -115,36 +127,37 @@ export async function addBase(registry: RadixRegistry){
         }
     })
 
-    if (!input){
+    if (!input) {
         return;
     }
 
     const base = Number(input);
     const label = labelForNewBase(base);
 
-    registry.add({base, label: label, prefix: ''})
+    registry.add({ base, label: label, prefix: '' })
     vscode.window.showInformationMessage(`Radix added successfully`);
-} 
+}
 
-export async function removeBase(registry: RadixRegistry){
+/* Диалог удаления системы счисления из реестра. */
+export async function removeBase(registry: RadixRegistry) {
     const picked = await vscode.window.showInputBox({
         title: 'Remove radix',
         prompt: 'Enter the radix',
         validateInput: (value) => {
             const num = Number(value)
 
-            if (!registry.has(num)){
+            if (!registry.has(num)) {
                 return 'This radix does not exist'
             }
-            
-            if(!Number.isInteger(num) || num < 2 || num > 36){
+
+            if (!Number.isInteger(num) || num < 2 || num > 36) {
                 return 'Incorrect radix'
             }
             return null;
         }
     })
 
-    if(!picked){
+    if (!picked) {
         return;
     }
 

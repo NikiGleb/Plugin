@@ -7,6 +7,11 @@ const commands_1 = require("./commands");
 const numberLiteral_1 = require("./numberLiteral");
 const hover_1 = require("./hover");
 const radixRegistry_1 = require("./radixRegistry");
+/*
+ * Точка входа расширения.
+ * Регистрирует команды замены литерала/комментария, добавления/удаления
+ * систем счисления и провайдер hover, работающий в файлах любого языка.
+ */
 function activate(context) {
     context.subscriptions.push(vscode.commands.registerCommand('radixHover.replaceLiteral', commands_1.replaceLiteral));
     context.subscriptions.push(vscode.commands.registerCommand('radixHover.replaceComment', commands_1.replaceComment));
@@ -14,17 +19,19 @@ function activate(context) {
     context.subscriptions.push(vscode.commands.registerCommand('radixHover.addBase', () => (0, commands_1.addBase)(registry)));
     context.subscriptions.push(vscode.commands.registerCommand('radixHover.removeBase', () => (0, commands_1.removeBase)(registry)));
     const hoverProvider = vscode.languages.registerHoverProvider({ scheme: '*', language: '*' }, {
+        // Вызывается VS Code при наведении курсора. Возвращает подсказку,
+        // если под курсором — числовой литерал, иначе undefined.
         provideHover(document, position) {
             const wordRange = document.getWordRangeAtPosition(position);
             if (!wordRange) {
                 return;
             }
             const word = document.getText(wordRange);
-            if (!(0, numberLiteral_1.checkNumber)(word)) {
-                return;
-            }
             const line = document.lineAt(position.line).text;
             const num = (0, numberLiteral_1.resolveConvertationNumber)(word, line, wordRange.end.character);
+            if (!num) {
+                return;
+            }
             const md = new vscode.MarkdownString((0, hover_1.buildHoverText)(num, word, document.uri, wordRange, registry));
             md.isTrusted = true;
             return new vscode.Hover(md);
@@ -32,4 +39,5 @@ function activate(context) {
     });
     context.subscriptions.push(hoverProvider);
 }
+/* Вызывается VS Code при выгрузке расширения. Ручной очистки не требуется. */
 function deactivate() { }

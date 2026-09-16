@@ -5,9 +5,9 @@ exports.replaceComment = replaceComment;
 exports.addBase = addBase;
 exports.removeBase = removeBase;
 const vscode = require("vscode");
-const RADIX_COMMENT_PATTERN = /\/\/\s*radix\s*:\s*\d+/i;
 /**
- * Заменяет литерал в документе на новую запись и обновляет hover.
+ * Заменяет литерал в документе на новую запись, поручает обновление
+ * комментария replaceComment, затем переоткрывает hover.
  */
 async function replaceLiteral(args) {
     const uri = vscode.Uri.parse(args.uri);
@@ -15,6 +15,7 @@ async function replaceLiteral(args) {
     const edit = new vscode.WorkspaceEdit();
     edit.replace(uri, range, args.newText);
     await vscode.workspace.applyEdit(edit);
+    // Литерал мог сменить длину — пересчитываем позицию "конец литерала".
     const newEndChar = args.startChar + args.newText.length;
     await vscode.commands.executeCommand('radixHover.replaceComment', {
         uri: args.uri,
@@ -28,6 +29,12 @@ async function replaceLiteral(args) {
     await vscode.commands.executeCommand('editor.action.hideHover');
     await vscode.commands.executeCommand('editor.action.showHover');
 }
+/* Регулярка для поиска комментария // radix: N в остатке строки после литерала. */
+const RADIX_COMMENT_PATTERN = /\/\/\s*radix\s*:\s*\d+/i;
+/*
+ * Добавляет, обновляет или удаляет комментарий // radix: N справа от числа
+ * на той же строке. Не знает про сам литерал.
+ */
 async function replaceComment(args) {
     const uri = vscode.Uri.parse(args.uri);
     const document = await vscode.workspace.openTextDocument(uri);
@@ -50,6 +57,7 @@ async function replaceComment(args) {
     }
     await vscode.workspace.applyEdit(edit);
 }
+/* Подбирает читаемую подпись для новой системы счисления. */
 function labelForNewBase(base) {
     if (base === 2) {
         return `BIN`;
@@ -65,6 +73,7 @@ function labelForNewBase(base) {
     }
     return `BASE-${base}`;
 }
+/* Диалог добавления новой системы счисления в реестр. */
 async function addBase(registry) {
     const input = await vscode.window.showInputBox({
         title: 'Add new radix',
@@ -88,6 +97,7 @@ async function addBase(registry) {
     registry.add({ base, label: label, prefix: '' });
     vscode.window.showInformationMessage(`Radix added successfully`);
 }
+/* Диалог удаления системы счисления из реестра. */
 async function removeBase(registry) {
     const picked = await vscode.window.showInputBox({
         title: 'Remove radix',
