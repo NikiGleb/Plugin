@@ -23,14 +23,28 @@ function activate(context) {
     const hoverProvider = vscode.languages.registerHoverProvider({ scheme: '*', language: '*' }, {
         provideHover(document, position) {
             const wordRange = document.getWordRangeAtPosition(position);
-            if (wordRange) {
-                const word = document.getText(wordRange);
-                if ((0, numberLiteral_1.checkNumber)(word)) {
-                    const md = new vscode.MarkdownString((0, hover_1.buildHoverText)((0, numberLiteral_1.parseNumber)(word), word, document.uri, wordRange, registry));
-                    md.isTrusted = true;
-                    return new vscode.Hover(md);
-                }
+            if (!wordRange) {
+                return;
             }
+            const word = document.getText(wordRange);
+            if (!(0, numberLiteral_1.checkNumber)(word)) {
+                return;
+            }
+            const prefixBase = Number((0, numberLiteral_1.formatNumber)(word));
+            let num;
+            if (prefixBase !== 10) {
+                num = (0, numberLiteral_1.parseNumber)(word);
+            }
+            else {
+                const line = document.lineAt(position.line).text;
+                const commentBase = (0, numberLiteral_1.findCommentRadix)(line, wordRange.end.character);
+                num = (commentBase !== null && (0, numberLiteral_1.isValidInBase)(word, commentBase))
+                    ? (0, numberLiteral_1.parseNumberAs)(word, commentBase)
+                    : (0, numberLiteral_1.parseNumber)(word);
+            }
+            const md = new vscode.MarkdownString((0, hover_1.buildHoverText)(num, word, document.uri, wordRange, registry));
+            md.isTrusted = true;
+            return new vscode.Hover(md);
         }
     });
     context.subscriptions.push(hoverProvider);

@@ -2,6 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.checkNumber = checkNumber;
 exports.formatNumber = formatNumber;
+exports.findCommentRadix = findCommentRadix;
+exports.isValidInBase = isValidInBase;
+exports.parseNumberAs = parseNumberAs;
 exports.getDigitsBody = getDigitsBody;
 exports.parseNumber = parseNumber;
 exports.toRadix = toRadix;
@@ -28,6 +31,33 @@ function formatNumber(line) {
         return "16";
     }
     return "10";
+}
+function findCommentRadix(line, afterChar) {
+    const pattern = /\/\/\s*radix\s*:\s*(\d+)/i;
+    const rest = line.slice(afterChar);
+    const match = pattern.exec(rest);
+    if (!match) {
+        return null;
+    }
+    const base = Number(match[1]);
+    if (!Number.isInteger(base) || base < 2 || base > 36) {
+        return null;
+    }
+    return base;
+}
+function isValidInBase(word, base) {
+    for (const symb of word) {
+        if (getId(symb) >= base) {
+            return false;
+        }
+    }
+    return true;
+}
+function parseNumberAs(word, base) {
+    return {
+        digits: word.toLowerCase(),
+        base: String(base),
+    };
 }
 function getDigitsBody(word) {
     const base = formatNumber(word);

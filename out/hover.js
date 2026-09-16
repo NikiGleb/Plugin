@@ -23,7 +23,7 @@ function buildHoverText(num, word, documentUri, wordRange, registry) {
     lines.push('|---|---|');
     for (const system of registry.list()) {
         const value = (0, radixRegistry_1.formatInSystem)(system, num);
-        lines.push(`| ${createLink(system.label, value, documentUri, wordRange)} | ${value}} |`);
+        lines.push(`| ${createLink(system.label, value, documentUri, wordRange)} | ${value} |`);
     }
     return lines.join('\n');
 }

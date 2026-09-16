@@ -1,6 +1,6 @@
 import * as vscode from 'vscode'
 import { replaceLiteral, addBase } from './commands';
-import { checkNumber, parseNumber, ConvertationNumber } from './numberLiteral';
+import { checkNumber, parseNumber, ConvertationNumber, parseNumberAs, isValidInBase, findCommentRadix, formatNumber } from './numberLiteral';
 import { buildHoverText } from './hover';
 import { createDefaultRegistry } from './radixRegistry';
 /*
@@ -28,16 +28,36 @@ export function activate(context: vscode.ExtensionContext): void {
         {
             provideHover(document, position) {
                 const wordRange = document.getWordRangeAtPosition(position);
-                if (wordRange) {
-                    const word = document.getText(wordRange);
-                    if (checkNumber(word)) {
-                        const md = new vscode.MarkdownString(
-                            buildHoverText(parseNumber(word), word, document.uri, wordRange, registry)
-                        );
-                        md.isTrusted = true;
-                        return new vscode.Hover(md);
-                    }
+                if(!wordRange){
+                    return
                 }
+            
+                const word = document.getText(wordRange);
+                if(!checkNumber(word)){
+                    return
+                }
+
+                const prefixBase = Number(formatNumber(word));
+                let num: ConvertationNumber;
+
+                if (prefixBase !== 10) {
+                    num = parseNumber(word);
+                } 
+                else {
+                    const line = document.lineAt(position.line).text;
+                    const commentBase = findCommentRadix(line, wordRange.end.character);
+
+                    num = (commentBase !== null && isValidInBase(word, commentBase))
+                        ? parseNumberAs(word, commentBase)
+                        : parseNumber(word);
+                }
+
+                const md = new vscode.MarkdownString(
+                    buildHoverText(num, word, document.uri, wordRange, registry)
+                );
+                md.isTrusted = true;
+                return new vscode.Hover(md);
+                
             }
         }
     )

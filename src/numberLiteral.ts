@@ -24,6 +24,39 @@ export function formatNumber(line: string): string {
     return "10"
 }
 
+export function findCommentRadix(line: string, afterChar: number): null | number{
+    const pattern = /\/\/\s*radix\s*:\s*(\d+)/i
+    const rest = line.slice(afterChar);
+    const match = pattern.exec(rest);
+
+    if (!match) {
+        return null;
+    }
+
+    const base = Number(match[1]);
+    if (!Number.isInteger(base) || base < 2 || base > 36) {
+        return null;
+    }
+
+    return base;
+}
+
+
+export function isValidInBase(word: string, base: number): boolean{
+    for (const symb of word){
+        if (getId(symb) >= base){
+            return false
+        }
+    }
+    return true
+}
+
+export function parseNumberAs(word: string, base: number): ConvertationNumber {
+    return {
+        digits: word.toLowerCase(),
+        base: String(base),
+    };
+}
 /*
  * Структура для хранения числа во всех поддерживаемых системах счисления.
  * Также содержит информацию о системе счисления, в которой число записано изначально.
@@ -65,7 +98,7 @@ export function toRadix(startNum: string, startBase: string, endBase: string){
     if (num10 === 0){
         return '0'
     }
-    
+
     while (num10 > 0){
         const rest = num10 % Number(endBase);
         endNum += DIGITS[rest];
