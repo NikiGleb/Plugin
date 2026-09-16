@@ -28,6 +28,10 @@
         "command": "radixHover.replaceComment",
         "title": "Replace radix comment",
         "enablement": "false"
+      },
+      {
+        "command": "radixHover.removeBase",
+        "title": "Radix Hover: remove radix"
       }
     ]
   },

@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.replaceLiteral = replaceLiteral;
 exports.replaceComment = replaceComment;
 exports.addBase = addBase;
+exports.removeBase = removeBase;
 const vscode = require("vscode");
 const RADIX_COMMENT_PATTERN = /\/\/\s*radix\s*:\s*\d+/i;
 /**
@@ -70,4 +71,25 @@ async function addBase(registry) {
     const base = Number(input);
     registry.add({ base, label: `BASE-${base}`, prefix: '' });
     vscode.window.showInformationMessage(`Radix added succesfully`);
+}
+async function removeBase(registry) {
+    const radixes = registry.list();
+    const picked = await vscode.window.showInputBox({
+        title: 'Remove radix',
+        prompt: 'Enter the radix',
+        validateInput: (value) => {
+            const num = Number(value);
+            if (!registry.has(num)) {
+                return 'This radix does not exist';
+            }
+            if (!Number.isInteger(num) || num < 2 || num > 36) {
+                return 'Incorrect radix';
+            }
+            return null;
+        }
+    });
+    if (!picked) {
+        return;
+    }
+    registry.remove(picked);
 }

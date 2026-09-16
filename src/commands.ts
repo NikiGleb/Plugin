@@ -106,3 +106,27 @@ export async function addBase(registry: RadixRegistry){
     registry.add({base, label: `BASE-${base}`, prefix: ''})
     vscode.window.showInformationMessage(`Radix added succesfully`);
 } 
+
+export async function removeBase(registry: RadixRegistry){
+    const radixes = registry.list()
+    const picked = await vscode.window.showInputBox({
+        title: 'Remove radix',
+        prompt: 'Enter the radix',
+        validateInput: (value) => {
+            const num = Number(value)
+
+            if (!registry.has(num)){
+                return 'This radix does not exist'
+            }
+            
+            if(!Number.isInteger(num) || num < 2 || num > 36){
+                return 'Incorrect radix'
+            }
+            return null;
+        }
+    })
+    if(!picked){
+        return;
+    }
+    registry.remove(picked)
+}

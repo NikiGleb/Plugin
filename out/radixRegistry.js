@@ -53,8 +53,8 @@ class RadixRegistry {
             this.addedSystems.splice(this.indexIn(system.base), 0, system);
         }
     }
-    remove(system) {
-        this.addedSystems.splice(this.indexOf(system.base), 1);
+    remove(base) {
+        this.addedSystems.splice(this.indexOf(Number(base)), 1);
     }
     list() {
         return this.addedSystems;
