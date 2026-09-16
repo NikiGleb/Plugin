@@ -50,7 +50,7 @@ class RadixRegistry {
     }
     add(system) {
         if (!this.has(system.base)) {
-            this.addedSystems.splice(this.indexIn(system.base) - 1, 0, system);
+            this.addedSystems.splice(this.indexIn(system.base), 0, system);
         }
     }
     remove(system) {

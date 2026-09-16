@@ -30,18 +30,9 @@ export function buildHoverText(
     lines.push('|---|---|');
 
     for (const system of registry.list()) {
-        lines.push(`| ${system.label} | ${formatInSystem(system, num)} |`);
+        const value = formatInSystem(system, num)
+        lines.push(`| ${createLink(system.label, value, documentUri, wordRange)} | ${value} |`);
     }
-
-    lines.push('');
-    lines.push('Заменить на:');
-
-    let row = '| Заменить на |';
-    for (const system of registry.list()) {
-        if (String(system.base) === num.base) continue;
-        row += ` ${createLink(system.label, formatInSystem(system, num), documentUri, wordRange)} |`;
-    }
-    lines.push(row);
 
     return lines.join('\n');
 }

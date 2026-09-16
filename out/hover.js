@@ -22,16 +22,8 @@ function buildHoverText(num, word, documentUri, wordRange, registry) {
     lines.push('| Система | Значение |');
     lines.push('|---|---|');
     for (const system of registry.list()) {
-        lines.push(`| ${system.label} | ${(0, radixRegistry_1.formatInSystem)(system, num)} |`);
+        const value = (0, radixRegistry_1.formatInSystem)(system, num);
+        lines.push(`| ${createLink(system.label, value, documentUri, wordRange)} | ${value}} |`);
     }
-    lines.push('');
-    lines.push('Заменить на:');
-    let row = '| Заменить на |';
-    for (const system of registry.list()) {
-        if (String(system.base) === num.base)
-            continue;
-        row += ` ${createLink(system.label, (0, radixRegistry_1.formatInSystem)(system, num), documentUri, wordRange)} |`;
-    }
-    lines.push(row);
     return lines.join('\n');
 }
