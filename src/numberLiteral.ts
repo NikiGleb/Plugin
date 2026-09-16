@@ -1,4 +1,24 @@
 /*
+ * Определяет ConvertationNumber для литерала под курсором за один вызов:
+ * 1) если есть префикс (0b/0o/0x) — база берётся из него;
+ * 2) если префикса нет, но рядом валидный // radix: N — база из комментария;
+ * 3) иначе — обычная десятичная запись (база 10).
+ * Вызывается один раз при наведении, результат используется везде дальше.
+ */
+export function resolveConvertationNumber(word: string, line: string, afterChar: number): ConvertationNumber {
+    const prefixBase = formatNumber(word);
+    if (prefixBase !== '10') {
+        return parseNumber(word);
+    }
+
+    const commentBase = findCommentRadix(line, afterChar);
+    if (commentBase !== null && isValidInBase(word, commentBase)) {
+        return parseNumberAs(word, commentBase);
+    }
+
+    return parseNumber(word);
+}
+/*
  * Проверяет, является ли слово корректным числовым литералом.
  * Допустимые формы: двоичная, восьмеричная, шестнадцатеричная и десятичная.
  */
@@ -61,7 +81,7 @@ export function parseNumberAs(word: string, base: number): ConvertationNumber {
  * Структура для хранения числа во всех поддерживаемых системах счисления.
  * Также содержит информацию о системе счисления, в которой число записано изначально.
  */
-export interface ConvertationNumber {
+export interface ConvertationNumber {  
     digits: string;
     base: string;
 }

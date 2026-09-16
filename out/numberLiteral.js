@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.resolveConvertationNumber = resolveConvertationNumber;
 exports.checkNumber = checkNumber;
 exports.formatNumber = formatNumber;
 exports.findCommentRadix = findCommentRadix;
@@ -8,6 +9,24 @@ exports.parseNumberAs = parseNumberAs;
 exports.getDigitsBody = getDigitsBody;
 exports.parseNumber = parseNumber;
 exports.toRadix = toRadix;
+/*
+ * Определяет ConvertationNumber для литерала под курсором за один вызов:
+ * 1) если есть префикс (0b/0o/0x) — база берётся из него;
+ * 2) если префикса нет, но рядом валидный // radix: N — база из комментария;
+ * 3) иначе — обычная десятичная запись (база 10).
+ * Вызывается один раз при наведении, результат используется везде дальше.
+ */
+function resolveConvertationNumber(word, line, afterChar) {
+    const prefixBase = formatNumber(word);
+    if (prefixBase !== '10') {
+        return parseNumber(word);
+    }
+    const commentBase = findCommentRadix(line, afterChar);
+    if (commentBase !== null && isValidInBase(word, commentBase)) {
+        return parseNumberAs(word, commentBase);
+    }
+    return parseNumber(word);
+}
 /*
  * Проверяет, является ли слово корректным числовым литералом.
  * Допустимые формы: двоичная, восьмеричная, шестнадцатеричная и десятичная.

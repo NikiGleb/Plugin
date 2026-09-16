@@ -50,6 +50,21 @@ async function replaceComment(args) {
     }
     await vscode.workspace.applyEdit(edit);
 }
+function labelForNewBase(base) {
+    if (base === 2) {
+        return `BIN`;
+    }
+    if (base === 8) {
+        return `OCT`;
+    }
+    if (base === 10) {
+        return `DEC`;
+    }
+    if (base === 16) {
+        return `HEX`;
+    }
+    return `BASE-${base}`;
+}
 async function addBase(registry) {
     const input = await vscode.window.showInputBox({
         title: 'Add new radix',
@@ -69,11 +84,11 @@ async function addBase(registry) {
         return;
     }
     const base = Number(input);
-    registry.add({ base, label: `BASE-${base}`, prefix: '' });
-    vscode.window.showInformationMessage(`Radix added succesfully`);
+    const label = labelForNewBase(base);
+    registry.add({ base, label: label, prefix: '' });
+    vscode.window.showInformationMessage(`Radix added successfully`);
 }
 async function removeBase(registry) {
-    const radixes = registry.list();
     const picked = await vscode.window.showInputBox({
         title: 'Remove radix',
         prompt: 'Enter the radix',
@@ -91,5 +106,5 @@ async function removeBase(registry) {
     if (!picked) {
         return;
     }
-    registry.remove(picked);
+    registry.remove(Number(picked));
 }

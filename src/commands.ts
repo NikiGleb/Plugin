@@ -56,9 +56,8 @@ export async function replaceLiteral(args: ReplaceArgs) {
 export async function replaceComment(args: ReplaceCommentArgs) {
     const uri = vscode.Uri.parse(args.uri);
     const document = await vscode.workspace.openTextDocument(uri);
-
+    
     const radixComment = args.radixComment ?? null;
-
     const lineText = document.lineAt(args.line).text;
     const restOfLine = lineText.slice(args.afterChar);
     const match = RADIX_COMMENT_PATTERN.exec(restOfLine);
@@ -81,6 +80,22 @@ export async function replaceComment(args: ReplaceCommentArgs) {
     await vscode.workspace.applyEdit(edit);
 }
 
+function labelForNewBase(base: number): string{
+    if (base === 2){
+        return `BIN`
+    }
+    if (base === 8){
+        return `OCT`
+    }
+    if (base === 10){
+        return `DEC`
+    }
+    if (base === 16){
+        return `HEX`
+    }
+    return `BASE-${base}`
+}
+
 export async function addBase(registry: RadixRegistry){
     const input = await vscode.window.showInputBox({
         title: 'Add new radix',
@@ -91,24 +106,27 @@ export async function addBase(registry: RadixRegistry){
             if (registry.has(num)){
                 return 'This radix already exists'
             }
-            
+
             if(!Number.isInteger(num) || num < 2 || num > 36){
                 return 'Incorrect radix'
             }
+
             return null;
         }
     })
+
     if (!input){
         return;
     }
 
     const base = Number(input);
-    registry.add({base, label: `BASE-${base}`, prefix: ''})
-    vscode.window.showInformationMessage(`Radix added succesfully`);
+    const label = labelForNewBase(base);
+
+    registry.add({base, label: label, prefix: ''})
+    vscode.window.showInformationMessage(`Radix added successfully`);
 } 
 
 export async function removeBase(registry: RadixRegistry){
-    const radixes = registry.list()
     const picked = await vscode.window.showInputBox({
         title: 'Remove radix',
         prompt: 'Enter the radix',
@@ -125,8 +143,10 @@ export async function removeBase(registry: RadixRegistry){
             return null;
         }
     })
+
     if(!picked){
         return;
     }
-    registry.remove(picked)
+
+    registry.remove(Number(picked))
 }

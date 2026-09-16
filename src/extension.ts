@@ -1,19 +1,10 @@
 import * as vscode from 'vscode'
 import { replaceLiteral, addBase, replaceComment, removeBase } from './commands';
-import { checkNumber, parseNumber, ConvertationNumber, parseNumberAs, isValidInBase, findCommentRadix, formatNumber } from './numberLiteral';
+import { checkNumber, resolveConvertationNumber } from './numberLiteral';
 import { buildHoverText } from './hover';
 import { createDefaultRegistry } from './radixRegistry';
-/*
- * Точка входа расширения.
- * Регистрирует тестовую команду, команду замены литерала и провайдер
- * hover, работающий в файлах любого языка.
- */
-export function activate(context: vscode.ExtensionContext): void {
-    const disposable = vscode.commands.registerCommand('radixHover.hello', () => {
-        vscode.window.showInformationMessage('Hello');
-    });
-    context.subscriptions.push(disposable);
 
+export function activate(context: vscode.ExtensionContext): void {
     context.subscriptions.push(
         vscode.commands.registerCommand('radixHover.replaceLiteral', replaceLiteral)
     );
@@ -22,13 +13,13 @@ export function activate(context: vscode.ExtensionContext): void {
         vscode.commands.registerCommand('radixHover.replaceComment', replaceComment)
     );
 
-    context.subscriptions.push(
-        vscode.commands.registerCommand('radixHover.removeBase', () => removeBase(registry))
-    );
-
     const registry = createDefaultRegistry();
     context.subscriptions.push(
         vscode.commands.registerCommand('radixHover.addBase', () => addBase(registry))
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('radixHover.removeBase', () => removeBase(registry))
     );
 
     const hoverProvider = vscode.languages.registerHoverProvider(
@@ -36,36 +27,23 @@ export function activate(context: vscode.ExtensionContext): void {
         {
             provideHover(document, position) {
                 const wordRange = document.getWordRangeAtPosition(position);
-                if(!wordRange){
-                    return
+                if (!wordRange) {
+                    return;
                 }
-            
+
                 const word = document.getText(wordRange);
-                if(!checkNumber(word)){
-                    return
+                if (!checkNumber(word)) {
+                    return;
                 }
 
-                const prefixBase = Number(formatNumber(word));
-                let num: ConvertationNumber;
-
-                if (prefixBase !== 10) {
-                    num = parseNumber(word);
-                } 
-                else {
-                    const line = document.lineAt(position.line).text;
-                    const commentBase = findCommentRadix(line, wordRange.end.character);
-
-                    num = (commentBase !== null && isValidInBase(word, commentBase))
-                        ? parseNumberAs(word, commentBase)
-                        : parseNumber(word);
-                }
+                const line = document.lineAt(position.line).text;
+                const num = resolveConvertationNumber(word, line, wordRange.end.character);
 
                 const md = new vscode.MarkdownString(
                     buildHoverText(num, word, document.uri, wordRange, registry)
                 );
                 md.isTrusted = true;
                 return new vscode.Hover(md);
-                
             }
         }
     )

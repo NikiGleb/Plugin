@@ -62,8 +62,8 @@ export class RadixRegistry{
         }
     }
 
-    remove(base: string){
-        this.addedSystems.splice(this.indexOf(Number(base)), 1);
+    remove(base: number){
+        this.addedSystems.splice(this.indexOf(base), 1);
     }
 
     list(): RadixSystem[]{
