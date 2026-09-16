@@ -18,6 +18,7 @@ function activate(context) {
     });
     context.subscriptions.push(disposable);
     context.subscriptions.push(vscode.commands.registerCommand('radixHover.replaceLiteral', commands_1.replaceLiteral));
+    context.subscriptions.push(vscode.commands.registerCommand('radixHover.replaceComment', commands_1.replaceComment));
     const registry = (0, radixRegistry_1.createDefaultRegistry)();
     context.subscriptions.push(vscode.commands.registerCommand('radixHover.addBase', () => (0, commands_1.addBase)(registry)));
     const hoverProvider = vscode.languages.registerHoverProvider({ scheme: '*', language: '*' }, {

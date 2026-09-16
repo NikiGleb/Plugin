@@ -1,5 +1,5 @@
 import * as vscode from 'vscode'
-import { replaceLiteral, addBase } from './commands';
+import { replaceLiteral, addBase, replaceComment } from './commands';
 import { checkNumber, parseNumber, ConvertationNumber, parseNumberAs, isValidInBase, findCommentRadix, formatNumber } from './numberLiteral';
 import { buildHoverText } from './hover';
 import { createDefaultRegistry } from './radixRegistry';
@@ -16,6 +16,10 @@ export function activate(context: vscode.ExtensionContext): void {
 
     context.subscriptions.push(
         vscode.commands.registerCommand('radixHover.replaceLiteral', replaceLiteral)
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('radixHover.replaceComment', replaceComment)
     );
 
     const registry = createDefaultRegistry();

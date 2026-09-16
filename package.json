@@ -23,6 +23,11 @@
       {
         "command": "radixHover.addBase",
         "title": "Radix Hover: добавить систему счисления"
+      },
+      {
+        "command": "radixHover.replaceComment",
+        "title": "Replace radix comment",
+        "enablement": "false"
       }
     ]
   },
