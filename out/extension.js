@@ -19,8 +19,6 @@ function activate(context) {
     context.subscriptions.push(vscode.commands.registerCommand('radixHover.addBase', () => (0, commands_1.addBase)(registry)));
     context.subscriptions.push(vscode.commands.registerCommand('radixHover.removeBase', () => (0, commands_1.removeBase)(registry)));
     const hoverProvider = vscode.languages.registerHoverProvider({ scheme: '*', language: '*' }, {
-        // Вызывается VS Code при наведении курсора. Возвращает подсказку,
-        // если под курсором — числовой литерал, иначе undefined.
         provideHover(document, position) {
             const wordRange = document.getWordRangeAtPosition(position);
             if (!wordRange) {
@@ -39,5 +37,5 @@ function activate(context) {
     });
     context.subscriptions.push(hoverProvider);
 }
-/* Вызывается VS Code при выгрузке расширения. Ручной очистки не требуется. */
+/* Вызывается VS Code при выгрузке расширения */
 function deactivate() { }

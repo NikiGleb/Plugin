@@ -14,15 +14,15 @@
     "commands": [
       {
         "command": "radixHover.hello",
-        "title": "Radix Hover: Привет"
+        "title": "Radix Hover: Hello"
       },
       {
         "command": "radixHover.replaceLiteral",
-        "title": "Заменить литерал"
+        "title": "Replace literal"
       },
       {
         "command": "radixHover.addBase",
-        "title": "Radix Hover: добавить систему счисления"
+        "title": "Radix Hover: add new radix"
       },
       {
         "command": "radixHover.replaceComment",

@@ -15,9 +15,9 @@ export function buildHoverText(
 ): string {
     const lines: string[] = [];
 
-    lines.push(`**${word}** — число в системе с основанием ${num.base}`);
+    lines.push(`**${word}** — number in a system with a base ${num.base}`);
     lines.push('');
-    lines.push('| Система | Значение |');
+    lines.push('| Radix | value |');
     lines.push('|---|---|');
 
     for (const system of registry.list()) {

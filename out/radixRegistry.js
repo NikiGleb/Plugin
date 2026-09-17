@@ -5,9 +5,7 @@ exports.formatInSystem = formatInSystem;
 exports.createDefaultRegistry = createDefaultRegistry;
 const numberLiteral_1 = require("./numberLiteral");
 /*
- * Реестр систем счисления. Хранится как массив, отсортированный по
- * возрастанию основания — это позволяет искать, вставлять и удалять
- * системы двоичным поиском за O(log n).
+ * Массив систем счисления, отсортированный по возрастанию основания.
  */
 class RadixRegistry {
     addedSystems = [];

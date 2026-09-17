@@ -106,4 +106,4 @@ function tryGetCommentBase(word: string, line: string, afterChar: number): numbe
     }
 
     return base;
-}
+}   

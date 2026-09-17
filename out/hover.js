@@ -15,8 +15,6 @@ function buildHoverText(num, word, documentUri, wordRange, registry) {
     lines.push('|---|---|');
     for (const system of registry.list()) {
         const value = (0, radixRegistry_1.formatInSystem)(system, num);
-        // Комментарий нужен только своим базам без префикса (не 2/8/10/16) —
-        // у BIN/OCT/DEC/HEX есть либо реальный префикс, либо это база 10.
         const needsComment = system.prefix === '' && system.base !== 10;
         const radixComment = needsComment ? system.base : null;
         lines.push(`| ${createLink(system.label, value, documentUri, wordRange, radixComment)} | ${value} |`);

@@ -2,12 +2,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.resolveConvertationNumber = resolveConvertationNumber;
 exports.toRadix = toRadix;
-// Одна регулярка на все формы префикса; группа захвата в каждой
-// альтернативе сразу даёт цифры без префикса — не нужен отдельный slice.
+// Регулярное выражение для нахождения числа
 const NUMBER_PATTERN = /^(?:0[bB]([01]+)|0[oO]([0-7]+)|0[xX]([0-9a-fA-F]+)|([0-9]+))$/;
+// Регулярное выражение для писка служебного комментария
 const RADIX_COMMENT_PATTERN = /\/\/\s*radix\s*:\s*(\d+)/i;
 /*
- * Единственная публичная точка входа для работы с числами под курсором.
+ * Точка входа для работы с числами под курсором.
  * Определяет, является ли word числом, и если да — возвращает его как
  * ConvertationNumber с правильной базой:
  * 1) если есть префикс (0b/0o/0x) — база и цифры берутся прямо из regex-групп;
@@ -43,9 +43,17 @@ function resolveConvertationNumber(word, line, afterChar) {
     // Ни того, ни другого — обычная десятичная запись.
     return { digits: word.toLowerCase(), base: '10' };
 }
+const DIGITS = '0123456789abcdefghijklmnopqrstuvwxyz';
+/* Находит позицию символа symb в алфавите DIGITS — его "цифровое значение". */
+function getId(symb) {
+    let id = 0;
+    while (DIGITS[id] !== symb) {
+        id++;
+    }
+    return id;
+}
 /*
- * Переводит запись числа из одной произвольной системы счисления в другую
- * вручную, методом накопления в десятичное значение и обратного деления.
+ * Переводит запись числа из одной произвольной системы счисления в другую.
  */
 function toRadix(startNum, startBase, endBase) {
     let num10 = 0;
@@ -84,14 +92,4 @@ function tryGetCommentBase(word, line, afterChar) {
         }
     }
     return base;
-}
-/* Алфавит цифр: индекс символа в этой строке — его числовое значение. */
-const DIGITS = '0123456789abcdefghijklmnopqrstuvwxyz';
-/* Находит позицию символа symb в алфавите DIGITS — его "цифровое значение". */
-function getId(symb) {
-    let id = 0;
-    while (DIGITS[id] !== symb) {
-        id++;
-    }
-    return id;
 }
