@@ -5,10 +5,19 @@ export interface ConvertationNumber {
 }
 
 // Регулярное выражение для нахождения числа
-const NUMBER_PATTERN = /^(?:0[bB]([01]+)|0[oO]([0-7]+)|0[xX]([0-9a-fA-F]+)|([0-9]+))$/;
+const NUMBER_PATTERN = /^(?:0[bB]([01]+)|0[oO]([0-7]+)|0[xX]([0-9a-fA-F]+)|([0-9]+)|[0-9a-zA-Z]+)$/;
 // Регулярное выражение для писка служебного комментария
 const RADIX_COMMENT_PATTERN = /\/\/\s*radix\s*:\s*(\d+)/i;
 
+
+export function isCorrect(number: string, base: number): boolean{
+    for (const symb of number){
+        if (getId(symb) >= base){
+            return false;
+        }
+    }
+    return true;
+}
 /*
  * Точка входа для работы с числами под курсором.
  * Определяет, является ли word числом, и если да — возвращает его как
@@ -50,7 +59,7 @@ export function resolveConvertationNumber(word: string, line: string, afterChar:
 const DIGITS = '0123456789abcdefghijklmnopqrstuvwxyz';
 
 /* Находит позицию символа symb в алфавите DIGITS — его "цифровое значение". */
-function getId(symb: string) {
+function getId(symb: string): number{
     let id = 0;
     while (DIGITS[id] !== symb) {
         id++;

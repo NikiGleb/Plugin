@@ -9,9 +9,9 @@ const radixRegistry_1 = require("./radixRegistry");
  */
 function buildHoverText(num, word, documentUri, wordRange, registry) {
     const lines = [];
-    lines.push(`**${word}** — число в системе с основанием ${num.base}`);
+    lines.push(`**${word}** — number in a system with a base ${num.base}`);
     lines.push('');
-    lines.push('| Система | Значение |');
+    lines.push('| Radix | value |');
     lines.push('|---|---|');
     for (const system of registry.list()) {
         const value = (0, radixRegistry_1.formatInSystem)(system, num);

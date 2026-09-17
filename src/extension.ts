@@ -1,6 +1,6 @@
 import * as vscode from 'vscode'
 import { replaceLiteral, addBase, replaceComment, removeBase } from './commands';
-import { resolveConvertationNumber } from './numberLiteral';
+import { resolveConvertationNumber, isCorrect } from './numberLiteral';
 import { buildHoverText } from './hover';
 import { createDefaultRegistry } from './radixRegistry';
 
@@ -40,6 +40,9 @@ export function activate(context: vscode.ExtensionContext): void {
                 const line = document.lineAt(position.line).text;
                 const num = resolveConvertationNumber(word, line, wordRange.end.character);
                 if (!num) {
+                    return;
+                }
+                if (!isCorrect(num.digits, Number(num.base))){
                     return;
                 }
 

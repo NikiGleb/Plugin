@@ -30,6 +30,9 @@ function activate(context) {
             if (!num) {
                 return;
             }
+            if (!(0, numberLiteral_1.isCorrect)(num.digits, Number(num.base))) {
+                return;
+            }
             const md = new vscode.MarkdownString((0, hover_1.buildHoverText)(num, word, document.uri, wordRange, registry));
             md.isTrusted = true;
             return new vscode.Hover(md);

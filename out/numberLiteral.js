@@ -1,11 +1,20 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.isCorrect = isCorrect;
 exports.resolveConvertationNumber = resolveConvertationNumber;
 exports.toRadix = toRadix;
 // Регулярное выражение для нахождения числа
-const NUMBER_PATTERN = /^(?:0[bB]([01]+)|0[oO]([0-7]+)|0[xX]([0-9a-fA-F]+)|([0-9]+))$/;
+const NUMBER_PATTERN = /^(?:0[bB]([01]+)|0[oO]([0-7]+)|0[xX]([0-9a-fA-F]+)|([0-9]+)|[0-9a-zA-Z]+)$/;
 // Регулярное выражение для писка служебного комментария
 const RADIX_COMMENT_PATTERN = /\/\/\s*radix\s*:\s*(\d+)/i;
+function isCorrect(number, base) {
+    for (const symb of number) {
+        if (getId(symb) >= base) {
+            return false;
+        }
+    }
+    return true;
+}
 /*
  * Точка входа для работы с числами под курсором.
  * Определяет, является ли word числом, и если да — возвращает его как
