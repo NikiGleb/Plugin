@@ -28,7 +28,7 @@ export function buildHoverText(
 
         lines.push(`| ${createLink(system.label, value, documentUri, wordRange, radixComment)} | ${value} |`);
     }
-
+    
     return lines.join('\n');
 }
 

@@ -18,14 +18,9 @@ export function isCorrect(number: string, base: number): boolean{
     }
     return true;
 }
+
 /*
- * Точка входа для работы с числами под курсором.
- * Определяет, является ли word числом, и если да — возвращает его как
- * ConvertationNumber с правильной базой:
- * 1) если есть префикс (0b/0o/0x) — база и цифры берутся прямо из regex-групп;
- * 2) если префикса нет, но рядом валидный // radix: N — база из комментария;
- * 3) иначе — обычная десятичная запись (база 10).
- * Если word вообще не число — возвращает null.
+ * Проверяет наличие стандартного префикса и возвращает систему счисления при наличии
  */
 function checkBasePrefix(word: string): null | string{
     if (word.length <= 2){
@@ -36,6 +31,16 @@ function checkBasePrefix(word: string): null | string{
     if (word[0] === '0' && word[1] === 'x') return '16';
     return null;
 }
+
+/*
+ * Точка входа для работы с числами под курсором.
+ * Определяет, является ли word числом, и если да — возвращает его как
+ * ConvertationNumber с правильной базой:
+ * 1) если есть префикс (0b/0o/0x) — база и цифры берутся прямо из regex-групп;
+ * 2) если префикса нет, но рядом валидный // radix: N — база из комментария;
+ * 3) иначе — обычная десятичная запись (база 10).
+ * Если word вообще не число — возвращает null.
+ */
 export function resolveConvertationNumber(word: string, line: string, afterChar: number): ConvertationNumber | null {
     const match = NUMBER_PATTERN.exec(word);
     if (!match) {
